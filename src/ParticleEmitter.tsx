@@ -37,17 +37,21 @@ export const ParticleEmitter = forwardRef(function ParticleEmitter(
   const [drawingSurface, setDrawingSurface] = useState<HTMLCanvasElement | null>(null);
   const surface = drawingSurface;
   const [adapter, setAdapter] = useState<CanvasRenderer | null>(null);
+  const [spawnSize, setSpawnSize] = useState({ width: 0, height: 0 });
   const sizeWatcher = useRef<ReturnType<typeof watchSurfaceSize> | null>(null);
   const committed = useRef({ width, height, pixelRatio });
   useEffect(() => { committed.current = { width, height, pixelRatio }; });
   useEffect(() => {
     if (!surface || !container) return;
     let previous = readSurfaceSize(surface, committed.current);
+    setSpawnSize({ width: previous.width, height: previous.height });
     const renderer = createCanvasRenderer(surface, previous.width, previous.height, previous.pixelRatio);
     const watcher = watchSurfaceSize(container, surface, () => committed.current, (next) => {
       if (next.width === previous.width && next.height === previous.height && next.pixelRatio === previous.pixelRatio) return;
       previous = next;
       renderer.resize(next.width, next.height, next.pixelRatio);
+      setSpawnSize((size) => size.width === next.width && size.height === next.height
+        ? size : { width: next.width, height: next.height });
     });
     sizeWatcher.current = watcher;
     setAdapter(renderer);
@@ -75,10 +79,19 @@ export const ParticleEmitter = forwardRef(function ParticleEmitter(
   }, [adapter, imageKey, imageMode, particleWidth, particleHeight, tint, shape]);
   const containerStyle = { position: 'relative' as const, display: 'block', overflow: 'hidden', ...style, width, height };
   const drawingStyle = { position: 'absolute' as const, inset: 0, display: 'block', width: '100%', height: '100%' };
+  const config = {
+    ...props.config,
+    particleConfig: {
+      ...props.config.particleConfig,
+      spawnShape: props.config.particleConfig.spawnShape ?? {
+        shape: { type: 'Rectangle' as const, x: 0, y: 0, ...spawnSize },
+      },
+    },
+  };
   return <>
     <div ref={setContainer} className={className} style={containerStyle} aria-hidden="true" data-particle-renderer="canvas">
       <canvas ref={setDrawingSurface} style={drawingStyle} />
     </div>
-    {adapter && factory && <Driver ref={ref} options={{ ...props, viewContainer: adapter.viewContainer, viewFactory: factory }} renderer={adapter.animation} />}
+    {adapter && factory && <Driver ref={ref} options={{ ...props, config, viewContainer: adapter.viewContainer, viewFactory: factory }} renderer={adapter.animation} />}
   </>;
 });

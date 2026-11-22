@@ -53,6 +53,46 @@ const config = { emitterConfig: { spawnInterval: 100 }, particleConfig: {} };
 const particle = { shape: 'circle' as const };
 
 describe('CSS emitter dimensions', () => {
+  it('defaults to the full CSS surface and resizes future spawns without restarting', () => {
+    const ref = createRef<ParticleEmitterHandle>();
+    const destroy = vi.spyOn(CoreEmitter.prototype, 'destroy');
+    const random = () => 0.5;
+    const input = { emitterConfig: { autoStart: false }, particleConfig: Object.freeze({}) };
+    const { container, rerender } = render(<ParticleEmitter config={input} random={random} pixelRatio={2} ref={ref} />);
+    act(() => ref.current!.emitOnce());
+    const first = vi.mocked(context.translate as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(first[0]).toBeGreaterThan(0); expect(first[0]).toBeLessThan(600);
+    expect(first[1]).toBeGreaterThan(0); expect(first[1]).toBeLessThan(400);
+    rerender(<ParticleEmitter config={input} random={random} width={200} height={100} pixelRatio={2} ref={ref} />);
+    act(() => { ref.current!.restart(); ref.current!.emitOnce(); });
+    expect(context.translate).toHaveBeenLastCalledWith(first[0] / 3, first[1] / 4);
+    resize(container.querySelector('canvas')!, 480, 240);
+    act(() => { ref.current!.restart(); ref.current!.emitOnce(); });
+    const last = vi.mocked(context.translate as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(last[0]).toBeCloseTo(first[0] * 0.8);
+    expect(last[1]).toBeCloseTo(first[1] * 0.6);
+    expect(ref.current!.getParticlesCount()).toBe(1);
+    expect(destroy).not.toHaveBeenCalled();
+    expect(input.particleConfig).toEqual({});
+  });
+
+  it('preserves explicit shapes and restores the surface default when omitted', () => {
+    const ref = createRef<ParticleEmitterHandle>();
+    const random = () => 0.5;
+    const input = { emitterConfig: { autoStart: false }, particleConfig: {
+      spawnShape: { shape: { type: 'Point' as const, x: 30, y: 50 } },
+    } };
+    const { container, rerender } = render(<ParticleEmitter config={input} random={random} ref={ref} />);
+    resize(container.querySelector('canvas')!, 400, 200);
+    act(() => ref.current!.emitOnce());
+    expect(context.translate).toHaveBeenLastCalledWith(30, 50);
+    rerender(<ParticleEmitter config={{ ...input, particleConfig: {} }} random={random} ref={ref} />);
+    act(() => ref.current!.emitOnce());
+    const last = vi.mocked(context.translate as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(last[0]).toBeGreaterThan(0); expect(last[0]).toBeLessThan(400);
+    expect(last[1]).toBeGreaterThan(0); expect(last[1]).toBeLessThan(200);
+  });
+
   it.each(['100%', '30vh', '20rem', 'calc(100% - 2rem)', 'min(100%, 30rem)', 'clamp(10rem, 50vw, 40rem)', 'auto', 'inherit'])('passes width=%s to CSS and uses observed pixels for Canvas', (width) => {
     const { container } = render(<ParticleEmitter config={config} particle={particle} width={width} height="50%" pixelRatio={2} />);
     const host = container.querySelector('[data-particle-renderer]') as HTMLElement;

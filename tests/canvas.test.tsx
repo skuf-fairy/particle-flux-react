@@ -42,6 +42,7 @@ const options: ParticleEmitterProps = {
     emitterConfig: { spawnInterval: 100 },
     particleConfig: {
       lifeTime: { value: 1000 }, spawnPosition: { x: 40, y: 80 }, direction: { angle: 0 },
+      spawnShape: { shape: { type: 'Point', x: 0, y: 0 } },
       speed: { timelapses: [{ time: 0, value: 2 }] },
       color: { timelapses: [{ time: 0, value: '#ff0080' }] },
     },

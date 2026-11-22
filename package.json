@@ -1,7 +1,16 @@
 {
   "name": "particle-flux-react",
   "version": "0.1.0",
-  "description": "React bindings for the particle-flux particle emitter.",
+  "description": "Canvas particle emitter for React with a universal hook for custom rendering adapters.",
+  "author": "skuf-fairy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skuf-fairy/particle-flux-react.git"
+  },
+  "homepage": "https://github.com/skuf-fairy/particle-flux-react#readme",
+  "bugs": {
+    "url": "https://github.com/skuf-fairy/particle-flux-react/issues"
+  },
   "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -17,7 +26,8 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -36,17 +46,20 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test && npm run build",
-    "prepack": "npm run check"
+    "test:package": "npm run build && node scripts/check-package.mjs",
+    "prepack": "npm run typecheck && npm test && npm run test:package"
   },
   "keywords": [
     "react",
     "particles",
     "particle-flux",
     "emitter",
-    "animation"
+    "animation",
+    "canvas",
+    "react-hook"
   ],
   "dependencies": {
-    "particle-flux": "file:../particle-flux"
+    "particle-flux": "2.0.0"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
