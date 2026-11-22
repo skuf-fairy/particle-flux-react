@@ -7,7 +7,7 @@ import { benchmarkConfig, useCanvasBenchmark } from './useCanvasBenchmark';
 import { PerformancePanel } from './PerformancePanel';
 import { ResponsiveExample } from './ResponsiveExample';
 
-const defaults = { interval: 40, wave: 3, max: 600, life: 1800, speed: 2.4, spread: 100, gravity: 0.06, size: 7 };
+const defaults = { interval: 40, wave: 3, max: 600, life: 1800, speed: 2.4, spread: 100, gravity: 0.06 };
 type Settings = typeof defaults;
 type Phase = 'Работает' | 'Пауза' | 'Остановлен' | 'Отключён';
 
@@ -104,8 +104,8 @@ export function App() {
               {(mounted || busy) && <ParticleEmitter key={benchmark.run?.id ?? `scene-${sceneRevision}`}
                 width={benchmark.run?.width ?? Math.max(1, bounds.width)} height={benchmark.run?.height ?? Math.max(1, bounds.height)}
                 pixelRatio={benchmark.run?.pixelRatio}
-                particle={busy ? { width: 4, height: 4, tint: '#9effcb' }
-                  : { width: settings.size, height: settings.size, image: imageSource, imageMode: imageURLs.length ? imageMode : undefined }}
+                particle={busy ? { tint: '#9effcb' }
+                  : { image: imageSource, imageMode: imageURLs.length ? imageMode : undefined }}
                 config={benchmark.run ? benchmarkConfig(benchmark.run) : config} ref={emitter} seed={42}
                 onStartEmit={() => { if (!busy) setPhase('Работает'); }} onStopEmit={() => { if (!busy) setPhase('Остановлен'); }} />}
             </div>
@@ -135,15 +135,14 @@ export function App() {
             <Slider label="Гравитация" value={settings.gravity} min={0} max={1} step={0.01} onChange={(v) => change('gravity', v)} />
           </section>
           <section className="control-group appearance"><h3><span>03</span> Внешний вид</h3>
-            <Slider label="Размер" value={settings.size} min={2} max={64} unit=" px" onChange={(v) => change('size', v)} />
             <form className="particle-image-controls" onSubmit={(event) => { event.preventDefault(); chooseImage(draftImageURL); }}>
               <label htmlFor="particle-image">Изображения частиц</label>
               <div className="image-input-row"><textarea id="particle-image" rows={3} aria-describedby="particle-images-help" value={draftImageURL} placeholder={'/particles/star.svg\n/particles/heart.svg'} onChange={(event) => setDraftImageURL(event.target.value)} /><button type="submit">Применить</button></div>
-              <p id="particle-images-help" className="image-help">Один URL на строку. Для каждой новой частицы выбирается случайная картинка.</p>
+              <p id="particle-images-help" className="image-help">Один URL на строку. Для каждой новой частицы выбирается случайная картинка в её исходных размерах.</p>
               <div className="image-presets"><button type="button" onClick={() => chooseImage('')}>Круг</button>
-                <button type="button" onClick={() => { chooseImage('./particles/star.svg'); setImageMode('image'); change('size', 24); }}>Звезда</button>
-                <button type="button" onClick={() => { chooseImage('./particles/glow.svg'); setImageMode('mask'); change('size', 32); }}>Свечение</button>
-                <button type="button" onClick={() => { chooseImage(['./particles/star.svg', './particles/heart.svg', './particles/diamond.svg']); setImageMode('image'); change('size', 24); }}>Смешанный набор</button></div>
+                <button type="button" onClick={() => { chooseImage('./particles/star.svg'); setImageMode('image'); }}>Звезда</button>
+                <button type="button" onClick={() => { chooseImage('./particles/glow.svg'); setImageMode('mask'); }}>Свечение</button>
+                <button type="button" onClick={() => { chooseImage(['./particles/star.svg', './particles/heart.svg', './particles/diamond.svg']); setImageMode('image'); }}>Смешанный набор</button></div>
             </form>
             <div className="image-preview"><div className="image-preview-list">{previewImages.map((url, index) => <img key={`${index}:${url}`} src={failedImages[url] ? DEFAULT_PARTICLE_IMAGE : url}
               alt={`Образец частицы ${index + 1}`} onError={() => setFailedImages((current) => ({ ...current, [url]: true }))} />)}</div>
@@ -156,7 +155,7 @@ export function App() {
         </aside>
       </div>
       <PerformancePanel benchmark={benchmark} width={bounds.width} height={bounds.height} onPreset={(count) => {
-        setSettings({ ...defaults, max: count, wave: Math.ceil(count / 20), interval: 50, life: 2000, speed: 0.6, spread: 360, gravity: 0, size: 3 });
+        setSettings({ ...defaults, max: count, wave: Math.ceil(count / 20), interval: 50, life: 2000, speed: 0.6, spread: 360, gravity: 0 });
         setMounted(true); setSceneRevision((revision) => revision + 1);
       }} />
       <section className="lifecycle"><div><div className="eyebrow">LIFECYCLE CHECK</div><h2>Проверка очистки</h2><p>Очистка убирает активные частицы. Отключение удаляет поверхность и останавливает анимацию.</p></div>

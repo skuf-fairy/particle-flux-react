@@ -50,7 +50,7 @@ export function ResponsiveExample({ enabled }: { enabled: boolean }) {
       <input id="responsive-parent" type="range" min={40} max={100} value={parentWidth} disabled={!enabled} onChange={(event) => setParentWidth(Number(event.target.value))} /></div>
     <div className="responsive-parent-track"><div ref={setHost} className="responsive-parent" style={{ width: `${parentWidth}%` }}>
       {enabled && <ParticleEmitter width={width} height={height} paused={paused} seed={42}
-        particle={{ image: ['./particles/star.svg', './particles/heart.svg', './particles/diamond.svg'], width: 18, height: 18 }}
+        particle={{ image: ['./particles/star.svg', './particles/heart.svg', './particles/diamond.svg'] }}
         config={{
           emitterConfig: { spawnInterval: 60, spawnParticlesPerWave: 2, maxParticles: 80 },
           particleConfig: {

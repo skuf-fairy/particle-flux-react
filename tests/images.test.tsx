@@ -190,6 +190,37 @@ describe('particle images', () => {
     expect(main.drawImage).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { size: {}, expected: [-40, -20, 80, 40] },
+    { size: { width: 20 }, expected: [-10, -5, 20, 10] },
+    { size: { height: 10 }, expected: [-10, -5, 20, 10] },
+  ])('uses intrinsic image proportions with size $size, including births after loading', ({ size, expected }) => {
+    const ref = createRef<ParticleEmitterHandle>();
+    const { container } = render(<ParticleEmitter config={config} paused ref={ref}
+      pixelRatio={2} particle={{ image: '/photo.png', ...size }} />);
+    const main = canvases.get(container.querySelector('canvas')!)!;
+    load(images[0], 80, 40);
+    expect(main.drawImage).toHaveBeenCalledWith(images[0], ...expected);
+    expect(frames.size).toBe(0);
+    act(() => ref.current!.clean());
+    main.drawImage.mockClear();
+    act(() => ref.current!.emitOnce(4));
+    expect(main.drawImage).toHaveBeenCalledTimes(4);
+    for (const call of main.drawImage.mock.calls) expect(call).toEqual([images[0], ...expected]);
+  });
+
+  it('uses each image size separately in an array', () => {
+    const many = { emitterConfig: { spawnInterval: 1000, spawnParticlesPerWave: 60, maxParticles: 60 }, particleConfig: {} };
+    const { container } = render(<ParticleEmitter config={many} paused seed={42}
+      particle={{ image: ['/wide.png', '/tall.png'] }} />);
+    const wide = images.find((image) => image.getAttribute('src') === '/wide.png')!;
+    const tall = images.find((image) => image.getAttribute('src') === '/tall.png')!;
+    load(wide, 80, 40); load(tall, 20, 60);
+    const main = canvases.get(container.querySelector('canvas')!)!;
+    expect(main.drawImage).toHaveBeenCalledWith(wide, -40, -20, 80, 40);
+    expect(main.drawImage).toHaveBeenCalledWith(tall, -10, -30, 20, 60);
+  });
+
   it('colors the default image via cached Canvas alpha-mask stamps', () => {
     const ref = createRef<ParticleEmitterHandle>();
     const { container } = render(<ParticleEmitter config={config} paused ref={ref}

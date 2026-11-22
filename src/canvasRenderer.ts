@@ -1,7 +1,7 @@
 import type { ViewContainer, ViewParticle } from 'particle-flux';
 import { RenderTicker } from './renderTicker';
 import type { EmitterRenderer } from './useParticleEmitter';
-import { acquireParticleImage, cssColor, resolveParticleImage } from './particleImage';
+import { acquireParticleImage, cssColor, DEFAULT_PARTICLE_IMAGE, resolveParticleImage } from './particleImage';
 import type { ParticleImageLease, SingleParticleAppearance } from './particleImage';
 
 export interface CanvasRenderer {
@@ -22,6 +22,14 @@ export function createCanvasRenderer(canvas: HTMLCanvasElement, width: number, h
   const sources = new Map<string, { lease: ParticleImageLease; refs: number }>();
   const stamps = new Map<string, HTMLCanvasElement>();
   let alive = true;
+  function updateImageSize(view: ViewParticle, options: SingleParticleAppearance, lease?: ParticleImageLease) {
+    if (!lease?.ready) return;
+    const custom = lease.url !== DEFAULT_PARTICLE_IMAGE;
+    const width = custom ? lease.image.naturalWidth || 8 : 8;
+    const height = custom ? lease.image.naturalHeight || 8 : 8;
+    view.width = options.width ?? (options.height === undefined ? width : options.height * width / height);
+    view.height = options.height ?? (options.width === undefined ? height : options.width * height / width);
+  }
   const clear = () => {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -91,13 +99,17 @@ export function createCanvasRenderer(canvas: HTMLCanvasElement, width: number, h
       let source = image ? sources.get(image.src) : undefined;
       if (image) {
         if (!source) {
-          source = { refs: 0, lease: acquireParticleImage(canvas.ownerDocument, image.src, () => { stamps.clear(); draw(); }) };
+          source = { refs: 0, lease: acquireParticleImage(canvas.ownerDocument, image.src, () => {
+            for (const [view, entry] of views) updateImageSize(view, entry.options, entry.lease);
+            stamps.clear(); draw();
+          }) };
           sources.set(image.src, source);
         }
         source.refs++;
       }
       views.set(view, { options, mode: image?.mode, source: image?.src,
         lease: source?.lease });
+      updateImageSize(view, options, source?.lease);
       return view;
     },
     animation: { render: draw, createTicker() {

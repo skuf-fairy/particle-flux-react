@@ -23,6 +23,8 @@ export interface ParticleAppearance {
   image?: string | readonly string[];
   /** Custom images retain their colors; 'mask' applies tint/color to their alpha. */
   imageMode?: ParticleImageMode;
+  /** Optional size in CSS pixels. Images default to their intrinsic dimensions;
+   * a single dimension preserves the aspect ratio. Built-in shapes default to 8 × 8. */
   width?: number;
   height?: number;
   tint?: string | number;

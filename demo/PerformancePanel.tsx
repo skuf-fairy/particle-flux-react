@@ -30,7 +30,7 @@ export function PerformancePanel({ benchmark, width, height, onPreset }: {
       <td className="fps-result">{result.fps.toFixed(1)}</td><td>{result.averageMS.toFixed(2)}</td><td>{result.p95MS.toFixed(2)}</td>
       <td>{result.slowFramesPercent.toFixed(1)}%</td><td>{result.frames}</td><td>{result.nodes}</td>
     </tr>)}</tbody></table></div>
-    <p className="benchmark-note">Частица 4 px · seed 42. FPS измеряется через requestAnimationFrame для всей страницы и ограничен частотой экрана. Прогрев и создание частиц исключены из замера. Скрытие сцены, вкладки или изменение окна прерывает тест. Для сравнения сохраняйте одинаковый размер сцены и DPR. Используйте production-сборку: npm run demo:build → npm run demo:preview.</p>
+    <p className="benchmark-note">Круг по умолчанию 8 × 8 px · seed 42. FPS измеряется через requestAnimationFrame для всей страницы и ограничен частотой экрана. Прогрев и создание частиц исключены из замера. Скрытие сцены, вкладки или изменение окна прерывает тест. Для сравнения сохраняйте одинаковый размер сцены и DPR. Используйте production-сборку: npm run demo:build → npm run demo:preview.</p>
     <div className="load-presets"><span>Нагрузка в обычном режиме</span>{[1000, 5000, 10000, 20000].map((n) =>
       <button disabled={busy} key={n} onClick={() => onPreset(n)}>{n.toLocaleString('ru-RU')}</button>)}</div>
   </section>;
